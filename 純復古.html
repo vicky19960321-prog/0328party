@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《三十未登出》系統載入中...</title>
+<style>
+:root {
+    --win-gray: #c0c0c0;
+    --win-blue: #0055ea;
+    --win-dark-gray: #808080;
+    --neon-cyan: #00ffff;
+}
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #1a0033;
+    font-family: '微軟正黑體', 'BiauKai', 'DFKai-SB', '標楷體', sans-serif;
+    color: #000;
+    cursor: default;
+    overflow-x: hidden;
+    padding-bottom: 80px;
+}
+
+::-webkit-scrollbar { width: 15px; }
+::-webkit-scrollbar-track { background: #dfdfdf; border-left: 1px solid #000; }
+::-webkit-scrollbar-thumb { 
+    background: var(--win-gray); 
+    border-top: 2px solid #fff; 
+    border-left: 2px solid #fff; 
+    border-bottom: 2px solid #000; 
+    border-right: 2px solid #000; 
+}
+
+.crt::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.1) 50%),
+                linear-gradient(90deg, rgba(255,0,0,0.03), rgba(0,255,0,0.01), rgba(0,0,255,0.03));
+    z-index: 9999;
+    background-size: 100% 3px, 3px 100%;
+    pointer-events: none;
+}
+
+.grid-bg {
+    min-height: 100vh;
+    background-color: #2b005e;
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 30px 30px;
+    padding: 40px 20px 120px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1.pixel-title {
+    color: #fff;
+    font-size: clamp(2.5rem, 8vw, 4rem);
+    text-align: center;
+    margin: 0;
+    font-weight: 900;
+    letter-spacing: 5px;
+    text-shadow: 
+        3px 3px 0 #ff00ff,
+        -2px -2px 0 #00ffff;
+}
+
+.subtitle {
+    color: #000;
+    font-size: 1rem;
+    margin-bottom: 30px;
+    margin-top: 15px;
+    font-weight: bold;
+    background: var(--win-gray);
+    padding: 10px 20px 15px 20px;
+    border-top: 2px solid #fff;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #000;
+    border-right: 2px solid #000;
+    text-align: center;
+    line-height: 1.8;
+}
+
+.subtitle a {
+    color: var(--win-blue);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.subtitle a:hover {
+    color: #000080;
+}
+
+.window {
+    background-color: var(--win-gray);
+    width: 100%;
+    max-width: 600px;
+    border-top: 2px solid #fff;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #000;
+    border-right: 2px solid #000;
+    margin-bottom: 30px;
+    position: relative;
+    color: #000;
+}
+
+.popup-window {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10050;
+    box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+    display: none;
+    width: 90%;
+    max-width: 450px;
+}
+
+.title-bar {
+    background: linear-gradient(90deg, var(--win-blue), #4db8ff);
+    color: white;
+    padding: 4px 8px;
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    user-select: none;
+}
+
+.close-btn {
+    background-color: var(--win-gray);
+    color: black;
+    border-top: 1px solid #fff;
+    border-left: 1px solid #fff;
+    border-bottom: 1px solid #000;
+    border-right: 1px solid #000;
+    padding: 1px 6px;
+    margin-left: 5px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.close-btn:active { 
+    border-top: 1px solid #000;
+    border-left: 1px solid #000;
+    border-bottom: 1px solid #fff;
+    border-right: 1px solid #fff;
+}
+
+.content { padding: 15px; line-height: 1.6; }
+.task-item { border-bottom: 1px dashed var(--win-dark-gray); padding: 10px 0; }
+.task-time { font-size: 1.1rem; font-weight: bold; color: #000080; display: flex; align-items: center; justify-content: space-between; }
+.task-hint { color: #333; font-size: 0.95rem; padding-left: 5px; margin-top: 4px; font-weight: bold; }
+.btn-group { display: flex; justify-content: center; gap: 15px; margin-top: 15px; }
+
+.win-btn {
+    padding: 6px 15px;
+    font-weight: bold;
+    font-family: inherit;
+    border-top: 2px solid #fff;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #000;
+    border-right: 2px solid #000;
+    background: var(--win-gray);
+    cursor: pointer;
+    color: #000;
+    outline: none;
+}
+
+.win-btn:active { 
+    border-top: 2px solid #000;
+    border-left: 2px solid #000;
+    border-bottom: 2px solid #fff;
+    border-right: 2px solid #fff;
+}
+
+.taskbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 38px;
+    background: var(--win-gray);
+    border-top: 2px solid #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 5px;
+    z-index: 10000;
+    color: #000;
+}
+
+.start-btn {
+    font-weight: bold;
+    padding: 4px 10px;
+    border-top: 2px solid #fff;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #000;
+    border-right: 2px solid #000;
+    display: flex; align-items: center; gap: 5px;
+    cursor: pointer;
+    background: var(--win-gray);
+}
+.start-btn:active { 
+    border-top: 2px solid #000;
+    border-left: 2px solid #000;
+    border-bottom: 2px solid #fff;
+    border-right: 2px solid #fff;
+}
+
+.start-menu {
+    position: fixed;
+    bottom: 38px;
+    left: 0;
+    width: 240px;
+    background: var(--win-gray);
+    border-top: 2px solid #fff;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #000;
+    border-right: 2px solid #000;
+    display: none;
+    z-index: 10001;
+    display: flex;
+}
+.start-menu-sidebar {
+    background: linear-gradient(0deg, var(--win-blue), #4db8ff);
+    color: white;
+    width: 35px;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 10px;
+}
+.start-menu-sidebar span {
+    transform: rotate(-90deg);
+    transform-origin: left bottom;
+    white-space: nowrap;
+    margin-left: 22px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    font-size: 1.1rem;
+}
+.start-menu-items {
+    flex-grow: 1;
+    padding: 2px;
+    color: #000;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+.menu-item {
+    padding: 8px 10px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+}
+.menu-item:hover {
+    background: var(--win-blue);
+    color: white;
+}
+.menu-divider {
+    height: 1px;
+    background: #fff;
+    border-top: 1px solid var(--win-dark-gray);
+    margin: 3px 5px;
+}
+
+.clock {
+    margin-left: auto;
+    border-top: 2px solid var(--win-dark-gray);
+    border-left: 2px solid var(--win-dark-gray);
+    border-bottom: 2px solid #fff;
+    border-right: 2px solid #fff;
+    padding: 3px 10px;
+    background: var(--win-gray);
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+ul { list-style: none; padding-left: 10px; color: #000; }
+li::before { content: "► "; color: var(--win-blue); }
+p { color: #000; }
+
+@media (max-width: 600px) {
+    .window { width: 95%; }
+}
+
+.rule-btn {
+    padding: 3px 10px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: inherit;
+    background: #ffd700;
+    border-top: 2px solid #fff;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #000;
+    border-right: 2px solid #000;
+    color: #000;
+    font-weight: bold;
+}
+.rule-btn:active { 
+    border-top: 2px solid #000;
+    border-left: 2px solid #000;
+    border-bottom: 2px solid #fff;
+    border-right: 2px solid #fff;
+}
+
+#console-quote {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 280px;
+    background: rgba(0, 0, 0, 0.75);
+    color: var(--neon-cyan);
+    font-family: "Courier New", Courier, monospace;
+    border: 1px dashed var(--neon-cyan);
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    z-index: 10050;
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+    pointer-events: none;
+    line-height: 1.5;
+    font-weight: bold;
+}
+.console-show {
+    opacity: 1 !important;
+}
+
+/* 民宿規則專屬列表樣式 */
+.hostel-list {
+    padding-left: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin: 0;
+    color: #000;
+    line-height: 1.6;
+}
+.hostel-list li {
+    margin-bottom: 8px;
+}
+</style>
+</head>
+<body class="crt">
+<div class="grid-bg">
+<h1 class="pixel-title">三十未登出</h1>
+<div class="subtitle">
+系統版本：2026.03.28 15:00<br>
+<a href="https://www.google.com/maps/search/?api=1&query=台中市后里區墩北里九甲六路582號" target="_blank">📍 伺服器位置：后里柚子民宿 (點擊開啟導航)</a><br>
+<button class="win-btn" style="margin-top: 15px; font-size: 0.9rem; padding: 4px 10px;" onclick="document.getElementById('hostel-rules-win').style.display='block'">⚠️ 警告訊息</button>
+</div>
+
+<div class="window popup-window" id="hostel-rules-win">
+    <div class="title-bar">
+        <span>⚠️ Hostel_Rules.txt</span>
+        <div class="close-btn" onclick="closeWindow('hostel-rules-win')">X</div>
+    </div>
+    <div class="content" style="background: #fff; border: inset 2px #fff; border-bottom-color: #c0c0c0; border-right-color: #c0c0c0;">
+        <ul class="hostel-list">
+            <li>損壞物品需照價賠償，床單、毛巾若沾到嘔吐物，需支付＄800/件特殊清理費，若無法清理以損壞照價賠償處理。</li>
+            <li>為響應環保政策，無提供一次性備品（ex.牙刷），僅提供沐浴洗髮乳、浴巾。</li>
+            <li>嚴禁屋內吸煙，違反規定以致隔日無法賣房，另收取一天房費，若有違法行徑將報警處理。</li>
+            <li>KTV、麻將桌、廚房、烤肉、迎娶限包棟提供。</li>
+            <li>烤肉、迎娶需酌收＄1000清潔費用（不退回），廚房需收押金$3000，使用完恢復原狀即退回。</li>
+        </ul>
+    </div>
+</div>
+
+<div class="window" id="alert-win">
+<div class="title-bar">
+<span>💾 System_Notice.exe</span>
+<div class="close-btn" onclick="closeWindow('alert-win')">X</div>
+</div>
+<div class="content">
+<p><strong>警告：</strong>偵測到您即將進入「三十歲」高階地圖。目前系統資源充足，建議立即載入「火鍋」與「酒精」補丁。</p>
+<div class="btn-group">
+<button class="win-btn" onclick="installSystem()">立即安裝</button>
+<button class="win-btn" onclick="rejectSystem()">稍後提醒</button>
+</div>
+</div>
+</div>
+
+<div class="window" id="task-win" style="display: none;">
+<div class="title-bar">
+<span>🕹️ Event_Scheduler.vbs</span>
+<div class="close-btn" onclick="closeWindow('task-win')">X</div>
+</div>
+<div class="content">
+<div class="task-item">
+<div class="task-time">15:00 帳號登入</div>
+<div class="task-hint">> 后里柚子民宿報到，確認行李</div>
+</div>
+<div class="task-item">
+<div class="task-time">17:00 核心運行</div>
+<div class="task-hint">> 火鍋副本啟動，食材全量載入</div>
+</div>
+<div class="task-item">
+<div class="task-time">19:00 系統壓力測試</div>
+<div class="task-hint">> 載入清單：歌詞還在線嗎 / 腦袋轉得動嗎 / 零食撞色大作戰</div>
+</div>
+<div class="task-item" style="border:none;">
+<div class="task-time">22:00 靜音模式</div>
+<div class="task-hint">> 深度對話空間，系統進入穩定低功耗運作</div>
+</div>
+</div>
+</div>
+
+<div class="window" id="game-win" style="display: none;">
+<div class="title-bar">
+<span>🎮 Game_List.exe</span>
+<div class="close-btn" onclick="closeWindow('game-win')">X</div>
+</div>
+<div class="content">
+<div class="task-item">
+<div class="task-time">
+    <span>🎵 [遊戲一] 歌詞還在線嗎</span>
+    <button class="rule-btn" onclick="openGameRule(1)">規則</button>
+</div>
+<div class="task-hint">從周董的青春回憶到最新神曲，前奏一落請立刻搶答！</div>
+</div>
+
+<div class="task-item">
+<div class="task-time">
+    <span>🧠 [遊戲二] 腦袋轉得動嗎</span>
+    <button class="rule-btn" onclick="openGameRule(2)">規則</button>
+</div>
+<div class="task-hint">強制切換台、英雙語伺服器，不小心說中文直接Ban！</div>
+</div>
+
+<div class="task-item" style="border:none;">
+<div class="task-time">
+    <span>🎨 [遊戲三] 零食撞色大作戰</span>
+    <button class="rule-btn" onclick="openGameRule(3)">規則</button>
+</div>
+<div class="task-hint">是「洗碗工」或「調酒大師」，選了就知道！</div>
+</div>
+</div>
+</div>
+
+<p style="color: #fff; margin-top: 20px; text-align:center; font-size: 0.9rem; font-weight: bold; text-shadow: 1px 1px 2px #000;">※ 系統建議：請在 Wifi 穩定的環境下進行多人連線</p>
+
+</div>
+
+<div class="window popup-window" id="rule-popup-win">
+    <div class="title-bar">
+        <span id="popup-title">Rule.txt</span>
+        <div class="close-btn" onclick="closeWindow('rule-popup-win')">X</div>
+    </div>
+    <div class="content" id="popup-content" style="background: #fff; border: inset 2px #fff; border-bottom-color: #c0c0c0; border-right-color: #c0c0c0;">
+        </div>
+</div>
+
+<div id="console-quote"></div>
+
+<div class="start-menu" id="start-menu" style="display: none;">
+    <div class="start-menu-sidebar">
+        <span>三十未登出</span>
+    </div>
+    <div class="start-menu-items">
+        <div class="menu-item" onclick="showPlayerInfo()">👤 [ID] 玩家資訊</div>
+        <div class="menu-item" onclick="alert('錯誤：三十歲為系統強制設定，無法降級或退費！'); closeStartMenu();">⚙️ [CFG] 系統設定</div>
+        
+        <div class="menu-divider"></div>
+        
+        <div class="menu-item" onclick="showUpdateLog()">📝 [LOG] 人生版本</div>
+        <div class="menu-item" onclick="backTo20()">⏪ [ERR] 回到 20 歲</div>
+
+        <div class="menu-divider"></div>
+        
+        <div class="menu-item" onclick="resetSystem(); closeStartMenu();">🔄 [RST] 重新載入視窗</div>
+        <div class="menu-item" onclick="alert('系統警告：【三十未登出】！\n高階地圖鎖定中，不允許登出！'); closeStartMenu();">🛑 [EXT] 登出系統...</div>
+    </div>
+</div>
+
+<div class="taskbar">
+<div class="start-btn" onclick="handleStartClick(event)">
+<img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Windows_logo_-_1992.svg" width="16" style="margin-right: 5px;" alt="WinLogo">
+開始
+</div>
+<div style="margin-left: 10px; font-size: 0.9rem; font-weight: bold; border-left: 1px solid var(--win-dark-gray); border-right: 1px solid #fff; padding-left: 10px; padding-right: 10px;">
+三十未登出_System
+</div>
+<div class="clock" id="live-clock">15:00:00</div>
+</div>
+
+<script>
+const gameRulesData = {
+    1: { title: "Rule_Game1.txt", content: "<ul><li>播放 5–8 秒歌曲，聽出答案者需舉手／按鈴搶答。</li><li>必須完整答出「歌名+歌手」才算得分。</li></ul>" },
+    2: { title: "Rule_Game2.txt", content: "<ul><li>限時 60 秒，僅限英文或台語解釋成語。</li><li>不可說中文、不可比手畫腳。</li></ul>" },
+    3: { title: "Rule_Game3.txt", content: "<ul><li>玩家需按照指定顏色，購買相同顏色的零食。</li><li>玩家間不可事先討論，如果與他人買到一樣的零食，就必須接受懲罰！</li></ul>" }
+};
+
+const funnyIDs = [
+    "老膝蓋99", "熬夜勇者", "火鍋補給員", "睡眠欠費中", "青春殘值50%", 
+    "快樂老妖", "半夜爆肝王", "眼袋超人", "零食大魔王", "被打斷的夢", 
+    "雞排守護者", "加班忍者", "咖啡因過敏", "夜行神龍", "餅乾暴徒", 
+    "爆米花騎士", "迷路的沙發", "床單幽靈", "糖果怪獸", "沙發土豆", 
+    "笑到掉眼鏡", "睡到自然醒"
+];
+
+function getPlayerData() {
+    const randomID = funnyIDs[Math.floor(Math.random() * funnyIDs.length)];
+    const powerPercent = Math.floor(Math.random() * 101); 
+    return { id: randomID, power: powerPercent };
+}
+
+function closeWindow(id){ 
+    document.getElementById(id).style.display='none'; 
+}
+
+function rejectSystem() {
+    alert('❌ 系統錯誤：存取被拒！\n\n系統偵測到您的「青春餘額」已嚴重不足。\n本系統不接受「拒絕」或「稍後提醒」。\n\n請認命點擊【立即安裝】！');
+}
+
+function installSystem() {
+    alert('✅ 補丁下載成功！\n正在為您載入三十歲高階地圖...');
+    document.getElementById('alert-win').style.display = 'none'; 
+    document.getElementById('task-win').style.display = 'block'; 
+    document.getElementById('game-win').style.display = 'block'; 
+}
+
+function resetSystem(){
+    document.getElementById('alert-win').style.display='block';
+    document.getElementById('task-win').style.display='none';
+    document.getElementById('game-win').style.display='none';
+    document.getElementById('rule-popup-win').style.display='none'; 
+    document.getElementById('hostel-rules-win').style.display='none';
+}
+
+function openGameRule(gameId) {
+    const data = gameRulesData[gameId];
+    if(data) {
+        document.getElementById('popup-title').innerText = data.title;
+        document.getElementById('popup-content').innerHTML = data.content;
+        document.getElementById('rule-popup-win').style.display = 'block';
+    }
+}
+
+function toggleStartMenu(e) {
+    if(e) e.stopPropagation();
+    const menu = document.getElementById('start-menu');
+    menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+}
+
+function closeStartMenu() {
+    document.getElementById('start-menu').style.display = 'none';
+}
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.start-btn') && !e.target.closest('.start-menu')) {
+        closeStartMenu();
+    }
+});
+
+function updateClock(){
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const s = String(now.getSeconds()).padStart(2,'0');
+    document.getElementById('live-clock').innerText=`${h}:${m}:${s}`;
+}
+setInterval(updateClock,1000); updateClock();
+
+let startClickCount = 0;
+let startClickTimer = null;
+
+function handleStartClick(e) {
+    startClickCount++;
+    clearTimeout(startClickTimer);
+    startClickTimer = setTimeout(() => { 
+        startClickCount = 0; 
+    }, 1000); 
+    
+    if (startClickCount >= 5) {
+        alert("系統偵測到焦慮行為。\n請深呼吸。\n三十歲不是世界末日。");
+        startClickCount = 0; 
+    }
+    toggleStartMenu(e);
+}
+
+function showPlayerInfo() {
+    const data = getPlayerData();
+    alert(`【玩家資訊】\n\nID: ${data.id}\n等級: Lv.30\n供電狀態: ${data.power}%\n\n狀態提示：\n熬夜抗性：已削弱\n體力恢復速度：-40%\n建議立即補充：火鍋 + 酒精`);
+    closeStartMenu();
+}
+
+function showUpdateLog() {
+    alert("Version 2.9 → 3.0 更新內容：\n\n新增：腰痠背痛 Buff\n移除：熬夜無敵模式\n修正：衝動購物 Bug\n已知問題：聽到周杰倫會突然激動");
+    closeStartMenu();
+}
+
+function backTo20() {
+    alert("錯誤 404：\n青春檔案不存在。\n請接受現實。");
+    closeStartMenu();
+}
+
+setInterval(() => {
+    if (Math.random() < 0.15) {
+        alert("健康提醒：\n請起身伸展 30 秒。\n您的膝蓋不是當年的膝蓋。");
+    }
+}, 180000);
+
+const consoleQuotes = [
+    "系統偵測：有人開始聊保險了。",
+    "青春其實沒有登出鍵。",
+    "友情版本更新中…",
+    "請勿討論工作 KPI。",
+    "偵測到熬夜傾向，風險升高。",
+    "情緒分享模式準備啟動。"
+];
+
+let isTypingConsole = false;
+
+setInterval(() => {
+    if (Math.random() < 0.5 && !isTypingConsole) {
+        isTypingConsole = true;
+        const consoleDiv = document.getElementById('console-quote');
+        const randomIndex = Math.floor(Math.random() * consoleQuotes.length);
+        const targetText = consoleQuotes[randomIndex];
+        
+        consoleDiv.innerText = "C:\\System\\log> ";
+        consoleDiv.classList.add('console-show');
+        
+        let charIndex = 0;
+        
+        setTimeout(() => {
+            const typingInterval = setInterval(() => {
+                consoleDiv.innerText += targetText.charAt(charIndex);
+                charIndex++;
+                
+                if (charIndex >= targetText.length) {
+                    clearInterval(typingInterval);
+                    setTimeout(() => {
+                        consoleDiv.classList.remove('console-show');
+                        setTimeout(() => {
+                            isTypingConsole = false;
+                        }, 300);
+                    }, 3000);
+                }
+            }, 40); 
+        }, 300);
+    }
+}, 5000);
+
+</script>
+</body>
+</html>
